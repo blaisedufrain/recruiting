@@ -1,5 +1,5 @@
 import { Form, FormField, FormLabel } from '@radix-ui/react-form';
-import { Button, Card, Section, Flex, Heading, Separator, TextField, IconButton } from '@radix-ui/themes';
+import { Button, Box, Card, Flex, Heading, Separator, TextField, IconButton } from '@radix-ui/themes';
 import React, { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Routes } from 'routes';
@@ -28,9 +28,11 @@ const defaultBody = (index: number): SimBody => ({
   mass: Math.random(),
 });
 
-const INITIAL_BODIES :SimBody[] = [
-  {name: "Body1", position: {x: -0.73, y: 0, z: 0}, velocity: {x: 0, y: -0.0015, z: 0}, mass: 1 },
-  {name: "Body2", position: {x: 60.34, y: 0, z: 0}, velocity: {x: 0, y: 0.13, z: 0}, mass: 0.0123 }
+// Try to get something that looks like 2 planets
+const INITIAL_BODIES: SimBody[] = [
+  { name: "Star",    position: { x: 0,    y: 0, z: 0 }, velocity: { x: 0, y: 0,     z: 0 }, mass: 10  },
+  { name: "Planet1", position: { x: 60,   y: 0, z: 0 }, velocity: { x: 0, y: 0.13,  z: 0 }, mass: 0.1 },
+  { name: "Planet2", position: { x: -120, y: 0, z: 0 }, velocity: { x: 0, y: -0.09, z: 0 }, mass: 0.1 },
 ]
 
 const SimulateForm: React.FC = () => {
@@ -112,70 +114,69 @@ const SimulateForm: React.FC = () => {
   );
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '5%',
-        left: 'calc(50% - 200px)',
-        overflow: 'scroll',
-      }}
-    >
-      {/* Card: https://www.radix-ui.com/themes/docs/components/card */}
-      <Card
-        style={{
-          width: '400px',
-        }}
-      >
-        <Heading as="h2" size="4" weight="bold" mb="4">
-          Run a Simulation
-        </Heading>
-        <Link to={Routes.SIMULATION}>View previous simulation</Link>
-        <Separator size="4" my="5" />
-        <Form onSubmit={handleSubmit}>
-          {bodies.map((body, index) => (
-          <div key={index}>
-            <Section align="center" justify="between">
-              <Heading as="h3" size="3" weight="bold">
-                Initial Configuration for {body.name}
-              </Heading>
-              {bodies.length > 1 && (
-                  <IconButton type="button" variant="classic" color="red" onClick={() => removeBody(index)}>Delete Body</IconButton>
-              )}
-
-               <FormField name={`${index}.name`}>
-                <FormLabel>Name</FormLabel>
-                <TextField.Root
-                  type="text"
-                  value={body.name}
-                  onChange={(e) => handleUpdatedName(index, e.target.value)}
-                  required
-                />
-              </FormField>
-              {(['position', 'velocity'] as const).map((group: "velocity" | "position")=>
-                  (['x', 'y', 'z'] as const).map((axis: 'x'| 'y'|'z') => (
-                  <FormField key={`${index}.${group}.${axis}`} name={`${index}.${group}.${axis}`} >
-                    <FormLabel> Initial {axis.toUpperCase()}-{group}</FormLabel>
-                    <TextField.Root type="number" value={body[group][axis]} required onChange={(e) => handleUpdatedPosition(index, `${group}.${axis}`, e.target.value)}></TextField.Root>
-                  </FormField>
-              )))}
-               <FormField name={`${index}.mass`}>
-                <FormLabel>Mass</FormLabel>
-                <TextField.Root
-                  type="number"
-                  value={body.mass}
-                  onChange={(e) => handleUpdatedMass(index, e.target.value)}
-                  required
-                />
-              </FormField>
-            </Section>
-          </div>
-          ))}
-          <Flex justify="center" m="5">
-            <Button type="submit">Submit</Button>
+    <Flex justify="center" align="start" style={{ minHeight: '100vh', padding: '2rem' }}>
+      <Box style={{ width: '100%', maxWidth: '600px' }}>
+        {/* Header card */}
+        <Card mb="4">
+          <Flex justify="between" align="center">
+            <Heading as="h2" size="4" weight="bold">Run a Simulation</Heading>
+            <Link to={Routes.SIMULATION}>View previous simulation</Link>
           </Flex>
-        </Form>
-      </Card>
-    </div>
+        </Card>
+
+        {/* Body forms */}
+        <Card>
+          <Form onSubmit={handleSubmit}>
+            {bodies.map((body, index) => (
+              <Box key={index}>
+                {index > 0 && <Separator size="4" my="4" />}
+                <Flex justify="between" align="center" mb="3">
+                  <Heading as="h3" size="3" weight="bold">
+                    {body.name}
+                  </Heading>
+                  {bodies.length > 1 && (
+                    <IconButton type="button" variant="ghost" color="red" onClick={() => removeBody(index)}>✕</IconButton>
+                  )}
+                </Flex>
+                <Flex direction="column" gap="2">
+                  <FormField name={`${index}.name`}>
+                    <FormLabel>Name</FormLabel>
+                    <TextField.Root
+                      type="text"
+                      value={body.name}
+                      onChange={(e) => handleUpdatedName(index, e.target.value)}
+                      required
+                    />
+                  </FormField>
+                  {(['position', 'velocity'] as const).map((group) =>
+                    (['x', 'y', 'z'] as const).map((axis) => (
+                      <FormField key={`${index}.${group}.${axis}`} name={`${index}.${group}.${axis}`}>
+                        <FormLabel>Initial {axis.toUpperCase()}-{group}</FormLabel>
+                        <TextField.Root type="number" value={body[group][axis]} required onChange={(e) => handleUpdatedPosition(index, `${group}.${axis}`, e.target.value)} />
+                      </FormField>
+                    ))
+                  )}
+                  <FormField name={`${index}.mass`}>
+                    <FormLabel>Mass</FormLabel>
+                    <TextField.Root
+                      type="number"
+                      value={body.mass}
+                      onChange={(e) => handleUpdatedMass(index, e.target.value)}
+                      required
+                    />
+                  </FormField>
+                </Flex>
+              </Box>
+            ))}
+
+            <Flex justify="between" align="center" mt="5">
+              <Button type="button" variant="soft" onClick={addBody}>+ Add Body</Button>
+              <Button type="submit">Submit</Button>
+            </Flex>
+          </Form>
+        </Card>
+      </Box>
+    </Flex>
   );
 };
 

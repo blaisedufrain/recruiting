@@ -2,7 +2,7 @@
 
 from typing import List
 
-from flask import Flask, request, render_template
+from flask import Flask, request
 from flask_cors import CORS
 from sqlalchemy.orm import selectinload
 
