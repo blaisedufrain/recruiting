@@ -160,7 +160,7 @@ class Simulator:
             case "Tuple":
                 raise Exception(f"Tuple production not yet implemented")
 
-    def simulate(self, iterations: int = 1000):
+    def simulate(self, iterations: int = 2500):
         """Simulate the universe for a given number of iterations."""
         for _ in range(iterations):
             for agentId in self.init:

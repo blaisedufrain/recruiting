@@ -39,7 +39,7 @@ def identity(arg):
 
 def timestep_manager(velocity):
     """Compute the length of the next simulation timeStep for the agent"""
-    return 1
+    return 2
 
 def time_manager(time, timeStep):
     """Compute the time for the next simulation step for the agent"""
