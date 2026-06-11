@@ -1,6 +1,5 @@
 import { Form, FormField, FormLabel } from '@radix-ui/react-form';
 import { Button, Card, Section, Flex, Heading, Separator, TextField, IconButton } from '@radix-ui/themes';
-import _ from 'lodash';
 import React, { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Routes } from 'routes';
@@ -10,25 +9,22 @@ type FormString = string | '';
 interface SimBody {
   name: FormString
   position: {
-    position: {
       x: FormValue;
       y: FormValue;
       z: FormValue;
-    }
-    velocity: {
-      x: FormValue;
-      y: FormValue;
-      z: FormValue;
-    }
-    mass: FormValue;
   }
+  velocity: {
+    x: FormValue;
+    y: FormValue;
+    z: FormValue;
+  }
+  mass: FormValue;
 }
-
 
 const defaultBody = (index: number): SimBody => ({
   name: `Body${index + 1}`,
   position: { x: Math.random(), y: Math.random(), z: Math.random() },
-  velocity: { x: '0', y: '0', z: '0' },
+  velocity: { x: 0, y: 0, z: 0 },
   mass: Math.random(),
 });
 
@@ -41,8 +37,7 @@ const SimulateForm: React.FC = () => {
   const navigate = useNavigate();
   const [bodies, setBodies] = useState<SimBody[]>(INITIAL_BODIES);
 
-  const handleUpdatedMass = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { index, value } = e.target;
+  const handleUpdatedMass = useCallback((index: number, value: string) => {
     const parsedValue: FormValue = value === '' ? '' : parseFloat(value);
     setBodies((prev: any) => {
       const updated: any = [...prev];
@@ -53,8 +48,7 @@ const SimulateForm: React.FC = () => {
     });
   }, []);
 
-  const handleUpdatedName = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { index, field, value } = e.target;
+  const handleUpdatedName = useCallback((index: number, value: string) => {
     setBodies((prev: any) => {
       const updated: any = [...prev];
       const body = {...updated[index]};
@@ -64,14 +58,15 @@ const SimulateForm: React.FC = () => {
     });
   }, []);
 
-  const handleUpdatedPosition = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { index, field, value } = e.target;
+  const handleUpdatedPosition = useCallback((index: number, field: string, value: string) => {
     const parsedValue: FormValue = value === '' ? '' : parseFloat(value);
     setBodies((prev: any) => {
       const updated: any = [...prev];
       const body = {...updated[index]};
       const [group, axis] = field.split('.') as ['position' | 'velocity', 'x' | 'y' | 'z'];
       body[group] = { ...body[group], [axis]: parsedValue };
+      updated[index] = body;
+      return updated;
     })
   }, []);
 
@@ -93,7 +88,7 @@ const SimulateForm: React.FC = () => {
           {
             position: body.position,
             velocity: body.velocity,
-            mass: body.masss
+            mass: body.mass
           }
         ])
       )
@@ -148,7 +143,7 @@ const SimulateForm: React.FC = () => {
               )}
 
                <FormField name={`${index}.name`}>
-                <FormLabel>Mass</FormLabel>
+                <FormLabel>Name</FormLabel>
                 <TextField.Root
                   type="text"
                   value={body.name}
@@ -160,7 +155,7 @@ const SimulateForm: React.FC = () => {
                   (['x', 'y', 'z'] as const).map((axis: 'x'| 'y'|'z') => (
                   <FormField key={`${index}.${group}.${axis}`} name={`${index}.${group}.${axis}`} >
                     <FormLabel> Initial {axis.toUpperCase()}-{group}</FormLabel>
-                    <TextField.Root type="number" value={body[group[axis]]} required onChange={(e) => handleUpdatedPosition(index, `${group}.${axis}`, e.target.value)}></TextField.Root>
+                    <TextField.Root type="number" value={body[group][axis]} required onChange={(e) => handleUpdatedPosition(index, `${group}.${axis}`, e.target.value)}></TextField.Root>
                   </FormField>
               )))}
                <FormField name={`${index}.mass`}>

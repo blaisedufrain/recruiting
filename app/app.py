@@ -7,7 +7,6 @@ from flask import Flask, request, render_template
 from flask_cors import CORS
 from sqlalchemy.orm import selectinload
 
-from app.store import QRangeStore
 from simulator import Simulator
 from store import QRangeStore
 from db import db
