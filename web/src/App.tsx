@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link } from 'react-router-dom';
 import { Routes } from 'routes';
+import { SimulationData, SimulationBody, SimulationStep } from './types';
 
 // Input data from the simulation
 type AgentData = Record<string, Record<string, number>>;
 type DataFrame = Record<string, AgentData>;
-type DataPoint = [number, number, DataFrame];
+// type DataPoint = [number, number, DataFrame];
 
 // Output data to the plot
 type PlottedAgentData = Record<string, number[]>;
@@ -30,14 +31,13 @@ const App = () => {
         // data should be populated from a POST call to the simulation server
         const response = await fetch('http://localhost:8000/simulation');
         if (canceled) return;
-        const data: DataPoint[] = await response.json();
+        const data: SimulationData = await response.json();
         const updatedPositionData: PlottedFrame = {};
         const updatedVelocityData: PlottedFrame = {};
 
         // NOTE: Uncomment to see the raw data in the console
         // console.log('Data:', data);
-
-        setInitialState(data[0][2]);
+        setInitialState(data.simulationBodies.map(body => body.simulationSteps[0]));
 
         const baseData = () => ({
           x: [],
@@ -49,23 +49,37 @@ const App = () => {
           line: { width: 2 },
         });
 
-        data.forEach(([t0, t1, frame]) => {
-          for (let [agentId, val] of Object.entries(frame)) {
-              if (agentId == "time" || agentId == "timeStep") {
-                continue;
-              }
-              let {position, velocity} = val;
-              updatedPositionData[agentId] = updatedPositionData[agentId] || baseData();
-              updatedPositionData[agentId].x.push(position.x);
-              updatedPositionData[agentId].y.push(position.y);
-              updatedPositionData[agentId].z.push(position.z);
+        // data.forEach(([t0, t1, frame]) => {
+        //   for (let [agentId, val] of Object.entries(frame)) {
+        //       if (agentId == "time" || agentId == "timeStep") {
+        //         continue;
+        //       }
+        //       let {position, velocity} = val;
+        //       updatedPositionData[agentId] = updatedPositionData[agentId] || baseData();
+        //       updatedPositionData[agentId].x.push(position.x);
+        //       updatedPositionData[agentId].y.push(position.y);
+        //       updatedPositionData[agentId].z.push(position.z);
+        //
+        //       updatedVelocityData[agentId] = updatedVelocityData[agentId] || baseData();
+        //       updatedVelocityData[agentId].x.push(velocity.x);
+        //       updatedVelocityData[agentId].y.push(velocity.y);
+        //       updatedVelocityData[agentId].z.push(velocity.z);
+        //   }
+        // });
+      data.simulationBodies.forEach(body => {
+       body.simulationSteps.forEach(step => {
 
-              updatedVelocityData[agentId] = updatedVelocityData[agentId] || baseData();
-              updatedVelocityData[agentId].x.push(velocity.x);
-              updatedVelocityData[agentId].y.push(velocity.y);
-              updatedVelocityData[agentId].z.push(velocity.z);
-          }
-        });
+          updatedPositionData[body.name] = updatedPositionData[body.name] || baseData();
+          updatedPositionData[body.name].x.push(step.pos_x);
+          updatedPositionData[body.name].y.push(step.pos_y);
+          updatedPositionData[body.name].z.push(step.pos_z);
+
+          updatedVelocityData[body.name] = updatedVelocityData[body.name] || baseData();
+          updatedVelocityData[body.name].x.push(step.vel_x);
+          updatedVelocityData[body.name].y.push(step.vel_y);
+          updatedVelocityData[body.name].z.push(step.vel_z);
+       })
+      });
         setPositionData(Object.values(updatedPositionData));
         setVelocityData(Object.values(updatedVelocityData));
         console.log('Set plot data!');

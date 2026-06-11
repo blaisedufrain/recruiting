@@ -2,6 +2,7 @@ from typing import List
 
 from sqlalchemy import String, ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pydantic import BaseModel, ConfigDict
 
 from db import db
 
@@ -50,12 +51,16 @@ from db import db
 # simulation_bodies
 # simulation_steps
 
+class BaseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
+
 class Simulation(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[str] = mapped_column()
     simulationBodies: Mapped[List["SimulationBody"]] = relationship(
         back_populates="simulation", cascade="all, delete-orphan"
     )
+
 
 class SimulationBody(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -66,6 +71,7 @@ class SimulationBody(db.Model):
     simulationSteps: Mapped[List["SimulationStep"]] = relationship(
         back_populates="body", cascade="all, delete-orphan"
     )
+
 
 class SimulationStep(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -83,3 +89,26 @@ class SimulationStep(db.Model):
     body: Mapped["SimulationBody"] = relationship(back_populates="simulationSteps")
 
 
+class SimulationStepSchema(BaseSchema):
+    id: int
+    t_start: float
+    t_end: float
+    time: int
+    pos_x: float
+    pos_y: float
+    pos_z: float
+    vel_x: float
+    vel_y: float
+    vel_z: float
+    time_step: float
+
+class SimulationBodySchema(BaseSchema):
+    id: int
+    name: str
+    mass: float
+    simulationSteps: List[SimulationStepSchema]
+
+class SimulationSchema(BaseSchema):
+    id: int
+    created_at: str
+    simulationBodies: List[SimulationBodySchema]
