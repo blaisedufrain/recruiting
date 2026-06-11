@@ -7,6 +7,7 @@ from flask import Flask, request, render_template
 from flask_cors import CORS
 from sqlalchemy.orm import selectinload
 
+from app.store import QRangeStore
 from simulator import Simulator
 from store import QRangeStore
 from db import db
@@ -72,6 +73,12 @@ def simulate():
     logging.info(f"Time to Simulate: {datetime.now() - t}")
 
     # Save data to database
+    store_simulation_run(store)
+
+    return store.store
+
+
+def store_simulation_run(store: QRangeStore):
     simulation = Simulation(created_at=datetime.now().isoformat())
     db.session.add(simulation)
     db.session.commit()
@@ -80,33 +87,31 @@ def simulate():
     bodies: dict[str, SimulationBody] = {}
     for body_name, body_state in initial_state.items():
         body = SimulationBody(
-            simulation_id = simulation.id,
-            name = body_name,
-            mass = body_state['mass']
+            simulation_id=simulation.id,
+            name=body_name,
+            mass=body_state['mass']
         )
         db.session.add(body)
         db.session.flush()
         bodies[body_name] = body
 
-    steps : List[SimulationStep] = []
+    steps: List[SimulationStep] = []
     for (t_start, t_end, state) in store.store:
         for (body_name, body_state) in state.items():
             pos = body_state['position'],
             vel = body_state['velocity'],
             steps.append(SimulationStep(
-                t_start = t_start,
-                t_end = t_end,
-                time = body_state['time'],
-                pos_x = pos[0]['x'],
-                pos_y = pos[0]['y'],
-                pos_z = pos[0]['z'],
-                vel_x = vel[0]['x'],
-                vel_y = vel[0]['y'],
-                vel_z = vel[0]['z'],
-                time_step = body_state['timeStep'],
-                body_id = bodies[body_name].id
+                t_start=t_start,
+                t_end=t_end,
+                time=body_state['time'],
+                pos_x=pos[0]['x'],
+                pos_y=pos[0]['y'],
+                pos_z=pos[0]['z'],
+                vel_x=vel[0]['x'],
+                vel_y=vel[0]['y'],
+                vel_z=vel[0]['z'],
+                time_step=body_state['timeStep'],
+                body_id=bodies[body_name].id
             ))
     db.session.add_all(steps)
     db.session.commit()
-
-    return store.store
