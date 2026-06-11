@@ -48,6 +48,8 @@ def time_manager(time, timeStep):
 '''
 NOTE: Declare what agents should exist, what functions should be run to update their state, 
     and bind the consumed arguments and produced results to each other.
+    
+Agents will now be dynamic so we need to accommodate for generic number of agents
 
 Query syntax:
 - `<variableName>` will do a dictionary lookup of `variableName` in the current state of the agent
@@ -57,107 +59,156 @@ Query syntax:
 - `<query>.<name>` will evaluate `query` and then look up `name` in the resulting dictionary.
 '''
 
-agents = {
-    'Body1': [
-        {
-            'consumed': '''(
-                prev!(velocity),
-            )''',
-            'produced': '''velocity''',
-            'function': identity,
-        },
-        {
-            'consumed': '''(
-                prev!(timeStep),
-                prev!(position),
-                velocity,
-            )''',
-            'produced': '''position''',
-            'function': propagate_position,
-        },
-        {
-            'consumed': '''(
-                prev!(mass),
-            )''',
-            'produced': '''mass''',
-            'function': propagate_mass,
-        },
-        {
-            'consumed': '''(
-                prev!(time),
-                timeStep
-            )''',
-            'produced': '''time''',
-            'function': time_manager,
-        },
-        {
-            'consumed': '''(
-                velocity,
-            )''',
-            'produced': '''timeStep''',
-            'function': timestep_manager,
-        }
-    ],
-    'Body2': [
-        {
-            'consumed': '''(
-                prev!(timeStep),
-                prev!(position),
-                prev!(velocity),
-                agent!(Body1).position,
-                agent!(Body1).mass,
-            )''',
-            'produced': '''velocity''',
-            'function': propagate_velocity,
-        },
-        {
-            'consumed': '''(
-                prev!(timeStep),
-                prev!(position),
-                velocity,
-            )''',
-            'produced': '''position''',
-            'function': propagate_position,
-        },
-        {
-            'consumed': '''(
-                prev!(mass),
-            )''',
-            'produced': '''mass''',
-            'function': propagate_mass,
-        },
-        {
-            'consumed': '''(
-                prev!(time),
-                timeStep
-            )''',
-            'produced': '''time''',
-            'function': time_manager,
-        },
-        {
-            'consumed': '''(
-                velocity,
-            )''',
-            'produced': '''timeStep''',
-            'function': timestep_manager,
-        }
-    ]
-}
+def make_agents(body_names: list[str]):
+    agents = {}
+    for name in body_names:
+        agents[name] = [
+            {
+                'consumed': '''(
+                            prev!(timeStep),
+                            prev!(position),
+                            prev!(velocity),
+                            otherBodies!,
+                        )''',
+                'produced': '''velocity''',
+                'function': propagate_velocity,
+            },
+            {
+                'consumed': '''(
+                    prev!(timeStep),
+                    prev!(position),
+                    velocity,
+                )''',
+                'produced': '''position''',
+                'function': propagate_position,
+            },
+            {
+                'consumed': '''(
+                    prev!(mass),
+                )''',
+                'produced': '''mass''',
+                'function': propagate_mass,
+            },
+            {
+                'consumed': '''(
+                    prev!(time),
+                    timeStep
+                )''',
+                'produced': '''time''',
+                'function': time_manager,
+            },
+            {
+                'consumed': '''(
+                    velocity,
+                )''',
+                'produced': '''timeStep''',
+                'function': timestep_manager,
+            }
+        ]
+    return agents
+
+
+# agents = {
+#     'Body1': [
+#         {
+#             'consumed': '''(
+#                 prev!(velocity),
+#             )''',
+#             'produced': '''velocity''',
+#             'function': identity,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(timeStep),
+#                 prev!(position),
+#                 velocity,
+#             )''',
+#             'produced': '''position''',
+#             'function': propagate_position,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(mass),
+#             )''',
+#             'produced': '''mass''',
+#             'function': propagate_mass,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(time),
+#                 timeStep
+#             )''',
+#             'produced': '''time''',
+#             'function': time_manager,
+#         },
+#         {
+#             'consumed': '''(
+#                 velocity,
+#             )''',
+#             'produced': '''timeStep''',
+#             'function': timestep_manager,
+#         }
+#     ],
+#     'Body2': [
+#         {
+#             'consumed': '''(
+#                 prev!(timeStep),
+#                 prev!(position),
+#                 prev!(velocity),
+#                 agent!(Body1).position,
+#                 agent!(Body1).mass,
+#             )''',
+#             'produced': '''velocity''',
+#             'function': propagate_velocity,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(timeStep),
+#                 prev!(position),
+#                 velocity,
+#             )''',
+#             'produced': '''position''',
+#             'function': propagate_position,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(mass),
+#             )''',
+#             'produced': '''mass''',
+#             'function': propagate_mass,
+#         },
+#         {
+#             'consumed': '''(
+#                 prev!(time),
+#                 timeStep
+#             )''',
+#             'produced': '''time''',
+#             'function': time_manager,
+#         },
+#         {
+#             'consumed': '''(
+#                 velocity,
+#             )''',
+#             'produced': '''timeStep''',
+#             'function': timestep_manager,
+#         }
+#     ]
+# }
 
 # NOTE: initial values are set here. we intentionally separate the data from the functions operating on it.
-data = {
-    'Body1': {
-        'timeStep': 0.01,
-        'time': 0.0,
-        'position': {'x': -0.73, 'y': 0, 'z': 0},
-        'velocity': {'x': 0, 'y': -0.0015, 'z': 0},
-        'mass': 1
-    },
-    'Body2': {
-        'timeStep': 0.01,
-        'time': 0.0,
-        'position': {'x': 60.34, 'y': 0, 'z': 0},
-        'velocity': {'x': 0, 'y': 0.13 , 'z': 0},
-        'mass': 0.123
-    }
-}
+# data = {
+#     'Body1': {
+#         'timeStep': 0.01,
+#         'time': 0.0,
+#         'position': {'x': -0.73, 'y': 0, 'z': 0},
+#         'velocity': {'x': 0, 'y': -0.0015, 'z': 0},
+#         'mass': 1
+#     },
+#     'Body2': {
+#         'timeStep': 0.01,
+#         'time': 0.0,
+#         'position': {'x': 60.34, 'y': 0, 'z': 0},
+#         'velocity': {'x': 0, 'y': 0.13 , 'z': 0},
+#         'mass': 0.123
+#     }
+# }

@@ -1,12 +1,12 @@
 # HTTP SERVER
 
-import json
 from typing import List
 
 from flask import Flask, request, render_template
 from flask_cors import CORS
 from sqlalchemy.orm import selectinload
 
+from modsim import make_agents
 from simulator import Simulator
 from store import QRangeStore
 from db import db
@@ -56,6 +56,7 @@ def simulate():
 
     # Define time and timeStep for each agent
     init: dict = request.json
+    agents = make_agents(list(init.keys()))
     for key in init.keys():
         init[key]["time"] = 0
         init[key]["timeStep"] = 0.01
@@ -63,7 +64,7 @@ def simulate():
     # Create store and simulator
     t = datetime.now()
     store = QRangeStore()
-    simulator = Simulator(store=store, init=init)
+    simulator = Simulator(store=store, init=init, agents=agents)
     logging.info(f"Time to Build: {datetime.now() - t}")
 
     # Run simulation

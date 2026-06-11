@@ -5,7 +5,6 @@ from operator import __or__
 import subprocess
 import json
 
-from modsim import agents
 from store import QRangeStore
 
 def parse_query(query):
@@ -38,7 +37,7 @@ class Simulator:
         init (dict): The initial state of the universe.
     """
 
-    def __init__(self, store: QRangeStore, init: dict):
+    def __init__(self, store: QRangeStore, init: dict, agents: dict[str, list[dict]]):
         # NOTE: Creating a Simulator object does all the simulation "building"
         self.store = store
         store[-999999999, 0] = init
