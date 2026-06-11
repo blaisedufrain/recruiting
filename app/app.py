@@ -2,37 +2,24 @@
 
 import json
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from simulator import Simulator
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from store import QRangeStore
+from db import db
+from models import Simulation
 import logging
 from datetime import datetime
-
-class Base(DeclarativeBase):
-    pass
-
 
 ############################## Application Configuration ##############################
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3030"])
 
-db = SQLAlchemy(model_class=Base)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db.init_app(app)
 
 logging.basicConfig(level=logging.INFO)
-
-############################## Database Models ##############################
-
-
-class Simulation(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    data: Mapped[str]
-
 
 with app.app_context():
     db.create_all()
@@ -50,7 +37,8 @@ def health():
 def get_data():
     # Get most recent simulation from database
     simulation: Simulation = Simulation.query.order_by(Simulation.id.desc()).first()
-    return simulation.data if simulation else []
+
+    return render_template("simulation.html", simulation=simulation)
 
 
 @app.post("/simulation")
