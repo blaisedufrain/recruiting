@@ -109,6 +109,13 @@ class Simulator:
             case "Agent":
                 # agent always gets the previous state
                 return universe[query["content"]]
+            case "OtherBodies":
+                # Return the previous state of every body except the current one
+                return [
+                    universe[other_id]
+                    for other_id in universe
+                    if other_id != agentId
+                ]
             case "Access":
                 base = self.find(agentId, query["content"]["base"], universe, newState, prev)
                 if base is None:

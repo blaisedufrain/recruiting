@@ -9,6 +9,7 @@ pub enum Query {
     Prev(Box<Query>),
     Root,
     Agent(String),
+    OtherBodies,
     Access { base: Box<Query>, field: String },
     Base(String),
     Tuple(Vec<Query>),

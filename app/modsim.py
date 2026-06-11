@@ -4,16 +4,20 @@ from random import random
 
 import numpy as np
 
-def propagate_velocity(time_step, position, velocity, other_position, m_other):
+def propagate_velocity(time_step, position, velocity, others):
     """Propagate the velocity of the agent from `time` to `time + timeStep`."""
-    # Use law of gravitation to update velocity
     r_self = np.array([position['x'], position['y'], position['z']])
     v_self = np.array([velocity['x'], velocity['y'], velocity['z']])
-    r_other = np.array([other_position['x'], other_position['y'], other_position['z']])
+    # Use law of gravitation to update velocity for each body
+    for other in others:
+        r_other = np.array([other['position']['x'], other['position']['y'], other['position']['z']])
+        r = r_self - r_other
+        # Note to self.  This is using r^3 because it
+        # handles vector calculation of acceleration instead of what I expected to be r^2.
+        # Read more about this
+        dvdt = -other['mass'] * r / np.linalg.norm(r)**3
+        v_self = v_self + dvdt * time_step
 
-    r = r_self - r_other
-    dvdt = -m_other * r / np.linalg.norm(r)**3
-    v_self = v_self + dvdt * time_step
 
     return {'x': v_self[0], 'y': v_self[1], 'z': v_self[2]}
 

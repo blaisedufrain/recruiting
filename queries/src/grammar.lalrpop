@@ -8,6 +8,7 @@ pub Query: Query = {
     "prev!(" <q: Query> ")" => Query::Prev(Box::new(q)),
     "root!" => Query::Root,
     "agent!(" <s: r"[a-zA-Z][a-zA-z0-9]*"> ")" => Query::Agent(s.to_string()),
+    "otherBodies!" => Query::OtherBodies,
     <s: r"[a-zA-Z][a-zA-z0-9]*"> => Query::Base(s.to_string()),
     "(" <qs: CommaPlus<Query>> ")" => Query::Tuple(qs),
     <q: Query> "." <s: r"[a-zA-Z][a-zA-z0-9]*"> => Query::Access{ base: Box::new(q), field: s.to_string() },
