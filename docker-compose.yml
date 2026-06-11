@@ -17,3 +17,24 @@ services:
     volumes:
       - ./app/:/app/
       - /app/instance/
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 1s
+
+  profiler:
+    container_name: app_profiler
+    build:
+      context: ./profiler
+      dockerfile: Dockerfile
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+    pid: "container:app"
+    volumes:
+      - ./profiler/profiles:/profiles
+    depends_on:
+      app:
+        condition: service_healthy
