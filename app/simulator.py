@@ -162,11 +162,12 @@ class Simulator:
 
     def simulate(self, iterations: int = 2500):
         """Simulate the universe for a given number of iterations."""
+        current_state = self.read(-0.001)
         for _ in range(iterations):
             for agentId in self.init:
                 t = self.times[agentId]
-                universe = self.read(t - 0.001)
-                if set(universe) == set(self.init):
-                    newState = self.step(agentId, universe)
-                    self.store[t, newState[agentId]["time"]] = newState
-                    self.times[agentId] = newState[agentId]["time"]
+                if set(current_state) == set(self.init):
+                    new_state = self.step(agentId, current_state)
+                    self.store[t, new_state[agentId]["time"]] = new_state
+                    self.times[agentId] = new_state[agentId]["time"]
+                    current_state = {**current_state, **new_state}
