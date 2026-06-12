@@ -111,7 +111,8 @@ const SimulateForm: React.FC = () => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        navigate(Routes.SIMULATION);
+        const sim_id = (await response.json()).id;
+        navigate(Routes.SIMULATION.replace(':id', String(sim_id)))
       } catch (error) {
         console.error('Error:', error);
       }
@@ -126,7 +127,7 @@ const SimulateForm: React.FC = () => {
         <Card mb="4">
           <Flex justify="between" align="center">
             <Heading as="h2" size="4" weight="bold">Run a Simulation</Heading>
-            <Link to={Routes.SIMULATION}>View previous simulation</Link>
+            <Link to={Routes.SIMULATIONS_ALL}>See previous simulations</Link>
           </Flex>
         </Card>
 

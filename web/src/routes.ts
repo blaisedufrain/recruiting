@@ -1,4 +1,5 @@
 export const Routes = {
   FORM: '/',
-  SIMULATION: '/simulation',
+  SIMULATION: '/simulation/:id',
+  SIMULATIONS_ALL: '/simulations/list'
 };

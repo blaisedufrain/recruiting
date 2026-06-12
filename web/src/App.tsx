@@ -1,9 +1,10 @@
 import { Flex, Heading, Separator, Table } from '@radix-ui/themes';
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Routes } from 'routes';
 import { SimulationData, SimulationBody, SimulationStep } from './types';
+import SimulationList from "./SimulationList";
 
 // Input data from the simulation
 type AgentData = Record<string, Record<string, number>>;
@@ -19,6 +20,7 @@ const App = () => {
   const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
   const [initialState, setInitialState] = useState<DataFrame>({});
+  const { id } = useParams();
 
   useEffect(() => {
     // fetch plot data when the component mounts
@@ -29,7 +31,7 @@ const App = () => {
 
       try {
         // data should be populated from a POST call to the simulation server
-        const response = await fetch('http://localhost:8000/simulation/latest');
+        const response = await fetch(`http://localhost:8000/simulation/${id}`);
         if (canceled) return;
         const data: SimulationData = await response.json();
         const updatedPositionData: PlottedFrame = {};
@@ -109,6 +111,7 @@ const App = () => {
           Simulation Data
         </Heading>
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
+        <Link to={Routes.SIMULATIONS_ALL}>Pick an existing simulation</Link>
         <Separator size="4" my="5" />
         <Flex direction="row" width="100%" justify="center">
           <Plot

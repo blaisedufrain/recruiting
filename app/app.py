@@ -99,13 +99,13 @@ def simulate():
     logging.info(f"Time to Simulate: {datetime.now() - t}")
 
     # Save data to database
-    store_simulation_run(store)
+    simulation_id = store_simulation_run(store)
 
-    return store.store
+    return json.dumps({"id": simulation_id})
 
 
-def store_simulation_run(store: QRangeStore):
-    simulation = Simulation(created_at=datetime.now().isoformat())
+def store_simulation_run(store: QRangeStore) -> int:
+    simulation: Simulation = Simulation(created_at=datetime.now().isoformat())
     db.session.add(simulation)
     db.session.commit()
     db.session.flush()
@@ -141,3 +141,5 @@ def store_simulation_run(store: QRangeStore):
             ))
     db.session.add_all(steps)
     db.session.commit()
+
+    return simulation.id

@@ -8,12 +8,17 @@ import App from './App';
 import './index.css';
 import NotFound from './NotFound';
 import SimulateForm from './SimulateForm';
+import SimulationList from './SimulationList';
 
 const router = createBrowserRouter([
   {
     path: Routes.FORM,
     element: <SimulateForm />,
     errorElement: <NotFound />,
+  },
+  {
+    path: Routes.SIMULATIONS_ALL,
+    element: <SimulationList />,
   },
   {
     path: Routes.SIMULATION,
