@@ -29,7 +29,7 @@ const App = () => {
 
       try {
         // data should be populated from a POST call to the simulation server
-        const response = await fetch('http://localhost:8000/simulation');
+        const response = await fetch('http://localhost:8000/simulation/latest');
         if (canceled) return;
         const data: SimulationData = await response.json();
         const updatedPositionData: PlottedFrame = {};

@@ -1,9 +1,10 @@
 # HTTP SERVER
-
+import json
 from typing import List
 
 from flask import Flask, request
 from flask_cors import CORS
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from modsim import make_agents
@@ -36,14 +37,39 @@ def health():
     return "<p>Sedaro Nano API - running!</p>"
 
 
-@app.get("/simulation")
-def get_data():
+@app.get("/simulation/latest")
+def get_data_latest():
     # Get most recent simulation from database
-    simulation: Simulation = (Simulation.query
+    sim: Simulation = (Simulation.query
         .order_by(Simulation.id.desc())
         .options(selectinload(Simulation.simulationBodies).joinedload(SimulationBody.simulationSteps))
         .first())
-    return SimulationSchema.model_validate(simulation).model_dump_json() if simulation else []
+    return SimulationSchema.model_validate(sim).model_dump_json() if sim else []
+
+@app.get("/simulation")
+def get_data():
+    stmt = (select(Simulation)
+            .options(selectinload(Simulation.simulationBodies))
+            .order_by(Simulation.id.asc()))
+
+    sims: list[Simulation] = db.session.scalars(stmt).all()
+    simulations = []
+    for sim in sims:
+        simulations.append({
+            "id": sim.id,
+            "created_at": sim.created_at,
+            "num_bodies": len(sim.simulationBodies),
+        })
+
+    return json.dumps(simulations)
+
+@app.get("/simulation/<simulation>")
+def get_data_for_sim(simulation: int):
+    # Get most recent simulation from database
+    sim: Simulation = (Simulation.query
+        .options(selectinload(Simulation.simulationBodies).joinedload(SimulationBody.simulationSteps))
+        .get(simulation))
+    return SimulationSchema.model_validate(sim).model_dump_json() if sim else []
 
 
 @app.post("/simulation")
