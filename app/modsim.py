@@ -18,7 +18,6 @@ def propagate_velocity(time_step, position, velocity, others):
         dvdt = -other['mass'] * r / np.linalg.norm(r)**3
         v_self = v_self + dvdt * time_step
 
-
     return {'x': v_self[0], 'y': v_self[1], 'z': v_self[2]}
 
 def propagate_position(time_step, position, velocity):
@@ -39,7 +38,7 @@ def identity(arg):
 
 def timestep_manager(velocity):
     """Compute the length of the next simulation timeStep for the agent"""
-    return 2
+    return 1
 
 def time_manager(time, timeStep):
     """Compute the time for the next simulation step for the agent"""

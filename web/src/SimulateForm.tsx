@@ -26,20 +26,23 @@ const randomPosOrVel = (min:number, max:number) => {
   return Math.random() * (max - min) + min
 }
 
-const defaultBody = (index: number): SimBody => ({
-  name: `Planet${index}`,
+const defaultBody = (index: number): SimBody => {
+  const offset = index + 1;
+  return ({
+  name: `Planet${offset}`,
   // move the bodies further out from the center
-  position: { x: (index*-1)*randomPosOrVel(100, 200), y: 0, z: 0 },
+  position: { x: offset*60, y: 0, z: 0 },
   // keep similar velocities
-  velocity: { x: 0, y: 0, z: (index*-1)*randomPosOrVel(0.05, 0.2) },
-  mass: randomPosOrVel(index*0.1, index*0.15),
-});
+  velocity: { x: 0, y: randomPosOrVel(0.12, 0.14), z: 0 },
+  mass: offset * randomPosOrVel(0.1, 0.15),
+})
+};
 
 // Try to get something that looks like 2 planets
 const INITIAL_BODIES: SimBody[] = [
   { name: "Star",    position: { x: 0,    y: 0, z: 0 }, velocity: { x: 0, y: 0,     z: 0 }, mass: 10  },
   { name: "Planet1", position: { x: 60,   y: 0, z: 0 }, velocity: { x: 0, y: 0.13,  z: 0 }, mass: 0.1 },
-  { name: "Planet2", position: { x: -120, y: 0, z: 0 }, velocity: { x: 0, y: -0.09, z: 0 }, mass: 0.2 },
+  { name: "Planet2", position: { x: 240,  y: 0, z: 0 }, velocity: { x: 0, y: 0.13,  z: 0 }, mass: 0.2 },
 ]
 
 const SimulateForm: React.FC = () => {
