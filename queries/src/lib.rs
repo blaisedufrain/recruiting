@@ -33,4 +33,19 @@ mod tests {
 
         assert_eq!(output, expected_output);
     }
+
+    #[test]
+    fn test_other_bodies() {
+        // NOTE: This test gives and example input/output pair for the parser.
+        let input = "otherBodies!";
+        let expected_output = r#"{"kind":"OtherBodies"}"#;
+
+        let parser = grammar::QueryParser::new();
+        let query = parser
+            .parse(input)
+            .unwrap_or_else(|err| panic!("Could not parse input! {err}"));
+        let output = serde_json::to_string(&query).unwrap();
+
+        assert_eq!(output, expected_output);
+    }
 }
