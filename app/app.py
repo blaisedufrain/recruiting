@@ -50,7 +50,7 @@ def get_data_latest():
 def get_data():
     stmt = (select(Simulation)
             .options(selectinload(Simulation.simulationBodies))
-            .order_by(Simulation.id.asc()))
+            .order_by(Simulation.id.desc()))
 
     sims: list[Simulation] = db.session.scalars(stmt).all()
     simulations = []

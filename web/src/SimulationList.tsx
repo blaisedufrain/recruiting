@@ -46,9 +46,14 @@ const SimulationList = () => {
                 <Table.Cell>{sim.created_at}</Table.Cell>
                 <Table.Cell>{sim.num_bodies}</Table.Cell>
                 <Table.Cell>
-                  <Button variant="classic" onClick={() => navigate(`/simulation/${sim.id}`)}>
+                  <Flex gap="3">
+                    <Button variant="classic" onClick={() => navigate(`/simulation/${sim.id}`)}>
                     View
                   </Button>
+                  <Button variant="classic" color="bronze" onClick={() => navigate(`/simulation/${sim.id}/edit`)}>
+                    Edit
+                  </Button>
+                  </Flex>
                 </Table.Cell>
               </Table.Row>
             ))}

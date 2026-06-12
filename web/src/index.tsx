@@ -24,6 +24,10 @@ const router = createBrowserRouter([
     path: Routes.SIMULATION,
     element: <App />,
   },
+  {
+    path: Routes.UPDATE_SIMULATION,
+    element: <SimulateForm />,
+  },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);

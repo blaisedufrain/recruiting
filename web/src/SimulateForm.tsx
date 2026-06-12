@@ -1,8 +1,9 @@
 import { Form, FormField, FormLabel } from '@radix-ui/react-form';
 import { Button, Box, Card, Flex, Heading, Separator, TextField, IconButton } from '@radix-ui/themes';
-import React, { useCallback, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useCallback, useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Routes } from 'routes';
+import {SimulationData} from "./types";
 
 type FormValue = number | '';
 type FormString = string | '';
@@ -44,6 +45,7 @@ const INITIAL_BODIES: SimBody[] = [
 const SimulateForm: React.FC = () => {
   const navigate = useNavigate();
   const [bodies, setBodies] = useState<SimBody[]>(INITIAL_BODIES);
+  const { id } = useParams<{ id: string }>();
 
   const handleUpdatedMass = useCallback((index: number, value: string) => {
     const parsedValue: FormValue = value === '' ? '' : parseFloat(value);
@@ -119,6 +121,22 @@ const SimulateForm: React.FC = () => {
     },
     [bodies]
   );
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetch(`http://localhost:8000/simulation/${id}`)
+      .then((response) => response.json())
+      .then((data: SimulationData) => {
+        setBodies(data.simulationBodies.map(body => ({
+          name: body.name,
+          position: { x: body.simulationSteps[0].pos_x, y: body.simulationSteps[0].pos_y, z: body.simulationSteps[0].pos_z },
+          velocity: { x: body.simulationSteps[0].vel_x, y: body.simulationSteps[0].pos_y, z: body.simulationSteps[0].pos_z },
+          mass: body.mass,
+        })))
+      })
+      .catch(console.error);
+  }, [id]);
 
   return (
     <Flex justify="center" align="start" style={{ minHeight: '100vh', padding: '2rem' }}>
