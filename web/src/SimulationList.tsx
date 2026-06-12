@@ -6,6 +6,7 @@ import { Routes } from 'routes';
 interface SimulationSummary {
   id: number;
   created_at: string;
+  description: string;
   num_bodies: number;
 }
 
@@ -29,12 +30,13 @@ const SimulationList = () => {
         </Link>
       </Flex>
       <Separator size="4" />
-      <Card style={{ width: '100%', maxWidth: '700px' }}>
+      <Card style={{ width: '100%', maxWidth: '70%' }}>
         <Table.Root>
           <Table.Header>
             <Table.Row>
               <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Created</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Bodies</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
             </Table.Row>
@@ -44,6 +46,7 @@ const SimulationList = () => {
               <Table.Row key={sim.id}>
                 <Table.Cell>{sim.id}</Table.Cell>
                 <Table.Cell>{sim.created_at}</Table.Cell>
+                <Table.Cell width="40%">{sim.description}</Table.Cell>
                 <Table.Cell>{sim.num_bodies}</Table.Cell>
                 <Table.Cell>
                   <Flex gap="3">
@@ -51,7 +54,7 @@ const SimulationList = () => {
                     View
                   </Button>
                   <Button variant="classic" color="bronze" onClick={() => navigate(`/simulation/${sim.id}/edit`)}>
-                    Edit
+                    Modify for new run
                   </Button>
                   </Flex>
                 </Table.Cell>

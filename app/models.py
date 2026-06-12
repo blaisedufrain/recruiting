@@ -56,6 +56,7 @@ class BaseSchema(BaseModel):
 
 class Simulation(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
+    description: Mapped[str] = mapped_column()
     created_at: Mapped[str] = mapped_column()
     simulationBodies: Mapped[List["SimulationBody"]] = relationship(
         back_populates="simulation", cascade="all, delete-orphan"
@@ -111,4 +112,5 @@ class SimulationBodySchema(BaseSchema):
 class SimulationSchema(BaseSchema):
     id: int
     created_at: str
+    description: str
     simulationBodies: List[SimulationBodySchema]

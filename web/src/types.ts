@@ -22,5 +22,6 @@ export interface SimulationBody {
 export interface SimulationData {
   id: number;
   created_at: string;
+  description: string;
   simulationBodies: SimulationBody[];
 }

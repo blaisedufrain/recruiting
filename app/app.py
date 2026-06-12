@@ -58,6 +58,7 @@ def get_data():
         simulations.append({
             "id": sim.id,
             "created_at": sim.created_at,
+            "description": sim.description,
             "num_bodies": len(sim.simulationBodies),
         })
 
@@ -82,6 +83,7 @@ def simulate():
 
     # Define time and timeStep for each agent
     init: dict = request.json
+    description = init.pop("description", "")
     agents = make_agents(list(init.keys()))
     for key in init.keys():
         init[key]["time"] = 0
@@ -99,17 +101,20 @@ def simulate():
     logging.info(f"Time to Simulate: {datetime.now() - t}")
 
     # Save data to database
-    simulation_id = store_simulation_run(store)
+    simulation_id = store_simulation_run(store, description)
 
     return json.dumps({"id": simulation_id})
 
 
-def store_simulation_run(store: QRangeStore) -> int:
-    simulation: Simulation = Simulation(created_at=datetime.now().isoformat())
+def store_simulation_run(store: QRangeStore, description: str) -> int:
+    (_, _, initial_state) = store.store[0]
+    simulation: Simulation = Simulation(
+        created_at=datetime.now().isoformat(),
+        description=description
+    )
     db.session.add(simulation)
     db.session.commit()
     db.session.flush()
-    (_, _, initial_state) = store.store[0]
     bodies: dict[str, SimulationBody] = {}
     for body_name, body_state in initial_state.items():
         body = SimulationBody(
@@ -124,18 +129,18 @@ def store_simulation_run(store: QRangeStore) -> int:
     steps: List[SimulationStep] = []
     for (t_start, t_end, state) in store.store:
         for (body_name, body_state) in state.items():
-            pos = body_state['position'],
-            vel = body_state['velocity'],
+            pos = body_state['position']
+            vel = body_state['velocity']
             steps.append(SimulationStep(
                 t_start=t_start,
                 t_end=t_end,
                 time=body_state['time'],
-                pos_x=pos[0]['x'],
-                pos_y=pos[0]['y'],
-                pos_z=pos[0]['z'],
-                vel_x=vel[0]['x'],
-                vel_y=vel[0]['y'],
-                vel_z=vel[0]['z'],
+                pos_x=pos['x'],
+                pos_y=pos['y'],
+                pos_z=pos['z'],
+                vel_x=vel['x'],
+                vel_y=vel['y'],
+                vel_z=vel['z'],
                 time_step=body_state['timeStep'],
                 body_id=bodies[body_name].id
             ))

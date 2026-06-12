@@ -46,6 +46,10 @@ const SimulateForm: React.FC = () => {
   const navigate = useNavigate();
   const [bodies, setBodies] = useState<SimBody[]>(INITIAL_BODIES);
   const { id } = useParams<{ id: string }>();
+  const [description, setDescription] = useState<string>('')
+  const handleUpdatedDescription = useCallback((value: string) => {
+    setDescription(value);
+  }, [])
 
   const handleUpdatedMass = useCallback((index: number, value: string) => {
     const parsedValue: FormValue = value === '' ? '' : parseFloat(value);
@@ -102,6 +106,7 @@ const SimulateForm: React.FC = () => {
           }
         ])
       )
+      payload["description"] = description;
       try {
         const response = await fetch('http://localhost:8000/simulation', {
           method: 'POST',
@@ -131,7 +136,7 @@ const SimulateForm: React.FC = () => {
         setBodies(data.simulationBodies.map(body => ({
           name: body.name,
           position: { x: body.simulationSteps[0].pos_x, y: body.simulationSteps[0].pos_y, z: body.simulationSteps[0].pos_z },
-          velocity: { x: body.simulationSteps[0].vel_x, y: body.simulationSteps[0].pos_y, z: body.simulationSteps[0].pos_z },
+          velocity: { x: body.simulationSteps[0].vel_x, y: body.simulationSteps[0].vel_y, z: body.simulationSteps[0].vel_z },
           mass: body.mass,
         })))
       })
@@ -152,6 +157,17 @@ const SimulateForm: React.FC = () => {
         {/* Body forms */}
         <Card>
           <Form onSubmit={handleSubmit}>
+            <Box style={{ marginBottom: '25px' }}>
+              <FormField name="description">
+                <FormLabel>Details (Optional)</FormLabel>
+                <TextField.Root
+                  type="text"
+                  value={description}
+                  onChange={(e) => handleUpdatedDescription(e.target.value)}
+                />
+              </FormField>
+            </Box>
+
             {bodies.map((body, index) => (
               <Box key={index}>
                 {index > 0 && <Separator size="4" my="4" />}

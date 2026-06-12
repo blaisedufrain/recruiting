@@ -112,6 +112,7 @@ const App = () => {
         </Heading>
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
         <Link to={Routes.SIMULATIONS_ALL}>Pick an existing simulation</Link>
+        <Link to={Routes.UPDATE_SIMULATION.replace(":id", id)}>Modify current configuration</Link>
         <Separator size="4" my="5" />
         <Flex direction="row" width="100%" justify="center">
           <Plot
