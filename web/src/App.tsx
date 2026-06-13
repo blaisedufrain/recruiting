@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { Link, useParams } from 'react-router-dom';
 import { Routes } from 'routes';
-import { SimulationData, SimulationBody, SimulationStep } from './types';
-import SimulationList from "./SimulationList";
+import { SimulationData } from './types';
+import getTimeAsString from './timeformat';
 
 // Input data from the simulation
 type AgentData = Record<string, Record<string, number>>;
@@ -20,6 +20,8 @@ const App = () => {
   const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
   const [initialState, setInitialState] = useState<DataFrame>({});
+  const [description, setDescription] = useState<string>('');
+  const [created_at, setCreatedAt] = useState<string>('');
   const { id } = useParams();
 
   useEffect(() => {
@@ -34,9 +36,10 @@ const App = () => {
         const response = await fetch(`http://localhost:8000/simulation/${id}`);
         if (canceled) return;
         const data: SimulationData = await response.json();
+        setDescription(data.description);
+        setCreatedAt(getTimeAsString(data.created_at));
         const updatedPositionData: PlottedFrame = {};
         const updatedVelocityData: PlottedFrame = {};
-
         // NOTE: Uncomment to see the raw data in the console
         // console.log('Data:', data);
         setInitialState(data.simulationBodies.map(body => body.simulationSteps[0]));
@@ -108,8 +111,11 @@ const App = () => {
       {/* Flex: https://www.radix-ui.com/themes/docs/components/flex */}
       <Flex direction="column" m="4" width="100%" justify="center" align="center">
         <Heading as="h1" size="8" weight="bold" mb="4">
-          Simulation Data
+          Simulation {id} Data
         </Heading>
+        <Heading as="h4">Run at {created_at}</Heading>
+        <Heading as="h4" gap="4">{description}</Heading>
+        <Separator size="4" my="5" />
         <Link to={Routes.FORM}>Define new simulation parameters</Link>
         <Link to={Routes.SIMULATIONS_ALL}>Pick an existing simulation</Link>
         <Link to={Routes.UPDATE_SIMULATION.replace(":id", id)}>Modify current configuration</Link>

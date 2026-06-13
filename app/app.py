@@ -75,7 +75,7 @@ def get_data_for_sim(simulation: int):
 
 @app.post("/simulation")
 def simulate():
-    # Get data from request in this form
+    # This is the structure I'm working with
     # init = {
     #     "Body1": {"x": 0, "y": 0.1, "vx": 0.1, "vy": 0},
     #     "Body2": {"x": 0, "y": 1, "vx": 1, "vy": 0},

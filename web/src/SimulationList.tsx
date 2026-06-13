@@ -2,6 +2,7 @@ import { Button, Card, Flex, Heading, Separator, Table } from '@radix-ui/themes'
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Routes } from 'routes';
+import getTimeAsString from './timeformat';
 
 interface SimulationSummary {
   id: number;
@@ -45,7 +46,7 @@ const SimulationList = () => {
             {simulations.map((sim) => (
               <Table.Row key={sim.id}>
                 <Table.Cell>{sim.id}</Table.Cell>
-                <Table.Cell>{sim.created_at}</Table.Cell>
+                <Table.Cell>{getTimeAsString(sim.created_at)}</Table.Cell>
                 <Table.Cell width="40%">{sim.description}</Table.Cell>
                 <Table.Cell>{sim.num_bodies}</Table.Cell>
                 <Table.Cell>
