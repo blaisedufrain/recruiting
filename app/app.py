@@ -1,5 +1,7 @@
 # HTTP SERVER
 import json
+import logging
+from datetime import datetime
 from typing import List
 
 from flask import Flask, request
@@ -7,13 +9,13 @@ from flask_cors import CORS
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from db import db
+from db_helper import get_simulation_by_id
+from analysis import sim_center_of_mass
+from models import Simulation, SimulationBody, SimulationStep, SimulationSchema
 from modsim import make_agents
 from simulator import Simulator
 from store import QRangeStore
-from db import db
-from models import Simulation, SimulationBody, SimulationStep, SimulationSchema
-import logging
-from datetime import datetime
 
 ############################## Application Configuration ##############################
 
@@ -66,11 +68,9 @@ def get_data():
 
 @app.get("/simulation/<simulation>")
 def get_data_for_sim(simulation: int):
-    # Get most recent simulation from database
-    sim: Simulation = (Simulation.query
-        .options(selectinload(Simulation.simulationBodies).joinedload(SimulationBody.simulationSteps))
-        .get(simulation))
+    sim = get_simulation_by_id(simulation)
     return SimulationSchema.model_validate(sim).model_dump_json() if sim else []
+
 
 
 @app.post("/simulation")
@@ -148,3 +148,14 @@ def store_simulation_run(store: QRangeStore, description: str) -> int:
     db.session.commit()
 
     return simulation.id
+
+
+@app.get("/analysis/<simulation>")
+def get_simulation_analysis(simulation: int):
+    sim: Simulation= get_simulation_by_id(simulation)
+    cms: dict = sim_center_of_mass(sim.simulationBodies)
+    result = {
+        "center_of_mass": cms if cms else {},
+    }
+
+    return json.dumps(result)
