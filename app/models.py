@@ -61,6 +61,9 @@ class Simulation(db.Model):
     simulationBodies: Mapped[List["SimulationBody"]] = relationship(
         back_populates="simulation", cascade="all, delete-orphan"
     )
+    simulationAnalysis: Mapped["SimulationAnalysis"] = relationship(
+        back_populates="simulation", cascade="all, delete-orphan"
+    )
 
 
 class SimulationBody(db.Model):
@@ -89,6 +92,12 @@ class SimulationStep(db.Model):
     body_id: Mapped[int] = mapped_column(ForeignKey("simulation_body.id"))
     body: Mapped["SimulationBody"] = relationship(back_populates="simulationSteps")
 
+class SimulationAnalysis(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    center_of_mass: Mapped[str] = mapped_column(String, default="")
+    simulation_id: Mapped[int] = mapped_column(ForeignKey("simulation.id"))
+    simulation: Mapped["Simulation"] = relationship(back_populates="simulationAnalysis")
+
 
 class SimulationStepSchema(BaseSchema):
     id: int
@@ -109,8 +118,13 @@ class SimulationBodySchema(BaseSchema):
     mass: float
     simulationSteps: List[SimulationStepSchema]
 
+class SimulationAnalysisSchema(BaseSchema):
+    id: int
+    center_of_mass: str
+
 class SimulationSchema(BaseSchema):
     id: int
     created_at: str
     description: str
     simulationBodies: List[SimulationBodySchema]
+    simulationAnalysis: SimulationAnalysisSchema

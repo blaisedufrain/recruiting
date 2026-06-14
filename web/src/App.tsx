@@ -19,6 +19,7 @@ const App = () => {
   // Store plot data in state.
   const [positionData, setPositionData] = useState<PlottedAgentData[]>([]);
   const [velocityData, setVelocityData] = useState<PlottedAgentData[]>([]);
+  const [centerMassData, setCenterMassData] = useState<PlottedAgentData[]>([]);
   const [initialState, setInitialState] = useState<DataFrame>({});
   const [description, setDescription] = useState<string>('');
   const [created_at, setCreatedAt] = useState<string>('');
@@ -27,6 +28,15 @@ const App = () => {
   useEffect(() => {
     // fetch plot data when the component mounts
     let canceled = false;
+    const baseData = () => ({
+      x: [],
+      y: [],
+      z: [],
+      type: 'scatter3d',
+      mode: 'lines+markers',
+      marker: { size: 4 },
+      line: { width: 2 },
+    });
 
     async function fetchData() {
       console.log('calling fetchdata...');
@@ -43,16 +53,6 @@ const App = () => {
         // NOTE: Uncomment to see the raw data in the console
         // console.log('Data:', data);
         setInitialState(data.simulationBodies.map(body => body.simulationSteps[0]));
-
-        const baseData = () => ({
-          x: [],
-          y: [],
-          z: [],
-          type: 'scatter3d',
-          mode: 'lines+markers',
-          marker: { size: 4 },
-          line: { width: 2 },
-        });
 
         // data.forEach(([t0, t1, frame]) => {
         //   for (let [agentId, val] of Object.entries(frame)) {
@@ -92,8 +92,25 @@ const App = () => {
         console.error('Error fetching data:', error);
       }
     }
+    async function fetchAnalyis() {
+      console.log('running anaylis...');
+      // Probably should run this in the backend one time per simulation to reduce system load.  maybe store in a table after simulation run.
+      const response = await fetch(`http://localhost:8000/analysis/${id}`);
+      if (canceled) return;
+      const data = await response.json();
+      const updatedCenterMassData: PlottedFrame = {};
+      const center_of_mass = 'center_of_mass';
+      JSON.parse(data.center_of_mass).forEach(cmStep => {
+          updatedCenterMassData[center_of_mass] = updatedCenterMassData[center_of_mass] || baseData();
+          updatedCenterMassData[center_of_mass].x.push(cmStep[2][0]);
+          updatedCenterMassData[center_of_mass].y.push(cmStep[2][1]);
+          updatedCenterMassData[center_of_mass].z.push(cmStep[2][2]);
+      })
+      setCenterMassData(Object.values(updatedCenterMassData))
+    }
 
     fetchData();
+    fetchAnalyis();
 
     return () => {
       canceled = true;
@@ -144,6 +161,26 @@ const App = () => {
             data={velocityData}
             layout={{
               title: 'Velocity',
+              scene: {
+                xaxis: { title: 'X' },
+                yaxis: { title: 'Y' },
+                zaxis: { title: 'Z' },
+              },
+              autosize: true,
+              dragmode: 'turntable',
+            }}
+            useResizeHandler
+            config={{
+              scrollZoom: true,
+            }}
+          />
+        </Flex>
+          <Flex direction="row" width="100%" justify="center">
+          <Plot
+            style={{ width: '45%', height: '100%', margin: '5px' }}
+            data={centerMassData}
+            layout={{
+              title: 'Center Of Mass',
               scene: {
                 xaxis: { title: 'X' },
                 yaxis: { title: 'Y' },

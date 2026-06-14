@@ -25,3 +25,7 @@ export interface SimulationData {
   description: string;
   simulationBodies: SimulationBody[];
 }
+
+export interface AnalysisData {
+  center_of_mass: Object
+}

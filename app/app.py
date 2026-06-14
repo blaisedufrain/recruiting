@@ -2,17 +2,16 @@
 import json
 import logging
 from datetime import datetime
-from typing import List
 
 from flask import Flask, request
 from flask_cors import CORS
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from db import db
-from db_helper import get_simulation_by_id
 from analysis import sim_center_of_mass
-from models import Simulation, SimulationBody, SimulationStep, SimulationSchema
+from db import db
+from db_helper import get_simulation_by_id, store_simulation_run, store_analysis
+from models import Simulation, SimulationBody, SimulationSchema, SimulationAnalysis, SimulationAnalysisSchema
 from modsim import make_agents
 from simulator import Simulator
 from store import QRangeStore
@@ -106,56 +105,14 @@ def simulate():
     return json.dumps({"id": simulation_id})
 
 
-def store_simulation_run(store: QRangeStore, description: str) -> int:
-    (_, _, initial_state) = store.store[0]
-    simulation: Simulation = Simulation(
-        created_at=datetime.now().isoformat(),
-        description=description
-    )
-    db.session.add(simulation)
-    db.session.commit()
-    db.session.flush()
-    bodies: dict[str, SimulationBody] = {}
-    for body_name, body_state in initial_state.items():
-        body = SimulationBody(
-            simulation_id=simulation.id,
-            name=body_name,
-            mass=body_state['mass']
-        )
-        db.session.add(body)
-        db.session.flush()
-        bodies[body_name] = body
-
-    steps: List[SimulationStep] = []
-    for (t_start, t_end, state) in store.store:
-        for (body_name, body_state) in state.items():
-            pos = body_state['position']
-            vel = body_state['velocity']
-            steps.append(SimulationStep(
-                t_start=t_start,
-                t_end=t_end,
-                time=body_state['time'],
-                pos_x=pos['x'],
-                pos_y=pos['y'],
-                pos_z=pos['z'],
-                vel_x=vel['x'],
-                vel_y=vel['y'],
-                vel_z=vel['z'],
-                time_step=body_state['timeStep'],
-                body_id=bodies[body_name].id
-            ))
-    db.session.add_all(steps)
-    db.session.commit()
-
-    return simulation.id
-
 
 @app.get("/analysis/<simulation>")
 def get_simulation_analysis(simulation: int):
-    sim: Simulation= get_simulation_by_id(simulation)
-    cms: dict = sim_center_of_mass(sim.simulationBodies)
-    result = {
-        "center_of_mass": cms if cms else {},
-    }
+    sim: Simulation = get_simulation_by_id(simulation)
+    sim_analysis: SimulationAnalysis = sim.simulationAnalysis
+    if not sim: return ""
+    if not sim_analysis:
+        cms: dict = sim_center_of_mass(sim.simulationBodies)
+        sim_analysis = store_analysis(cms, simulation)
 
-    return json.dumps(result)
+    return SimulationAnalysisSchema.model_validate(sim_analysis).model_dump_json()
